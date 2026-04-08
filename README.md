@@ -4,8 +4,6 @@
 
 `doubao-no-watermarking` 是一个面向本地使用场景的桌面封装项目，用于从豆包分享链接中提取图片和视频资源。当前仓库以 `sagima` 的二次整理、桌面化封装、GitHub 维护和后续发布为目标，适合继续作为公开仓库或私有仓库长期维护。
 
-除 [LICENSE](/Users/sagima/Downloads/Demo/doubao-no-watermarking/LICENSE) 与 [legal/THIRD_PARTY_NOTICES.txt](/Users/sagima/Downloads/Demo/doubao-no-watermarking/legal/THIRD_PARTY_NOTICES.txt) 中依法必须保留的上游版权与许可说明外，当前仓库中的维护者与开发者展示信息已经统一整理为 `sagima`。
-
 ## 项目特点
 
 - 支持图片分享链接解析，返回图片地址、宽度、高度等信息。
@@ -59,7 +57,7 @@ doubao-no-watermarking/
   桌面启动器。启动本地服务后，拉起桌面窗口或浏览器页面。
 
 - `src/desktop_app/ui/index.html`
-  当前桌面界面，已调整为浅蓝色风格，并显示“开发者：sagima”。
+  当前桌面界面，已调整为浅蓝色风格。
 
 - `scripts/`
   双平台打包脚本。
@@ -295,12 +293,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_windows.ps1
 
 ## 合规说明
 
-当前版本的品牌、桌面封装和维护者信息已整理为 `sagima`，同时保留了上游项目所要求的许可证与第三方声明文件：
+许可证与第三方声明文件：
 
 - [LICENSE](/Users/sagima/Downloads/Demo/doubao-no-watermarking/LICENSE)
 - [legal/THIRD_PARTY_NOTICES.txt](/Users/sagima/Downloads/Demo/doubao-no-watermarking/legal/THIRD_PARTY_NOTICES.txt)
-
-如果你准备上传到 GitHub，可以直接使用当前仓库内容继续维护。  
-推荐对外说明为：
-
-`doubao-no-watermarking maintained by sagima. Desktop packaging and local delivery for Doubao media extraction.`
