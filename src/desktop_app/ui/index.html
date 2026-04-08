@@ -233,7 +233,7 @@
 
         .actions {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
             padding: 12px 14px 14px;
         }
@@ -278,7 +278,7 @@
 
         .video-actions {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
             padding: 14px;
             background: #fafdff;
@@ -453,17 +453,22 @@
             }
         }
 
-        async function downloadUrl(url, filename, key) {
+        async function saveViaBackend(endpoint, url, filename, key) {
             try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const objectUrl = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = objectUrl;
-                link.download = filename;
-                link.click();
-                URL.revokeObjectURL(objectUrl);
+                const response = await fetch(`${window.location.origin}${endpoint}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ url, filename })
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.detail || "下载失败");
+                }
                 state.downloadedKey = key;
+                statusNode.textContent = `已保存到下载目录`;
+                summaryNode.textContent = payload.filename;
                 render();
                 window.setTimeout(() => {
                     if (state.downloadedKey === key) {
@@ -494,7 +499,6 @@
                                 <span>${image.width} × ${image.height}</span>
                             </div>
                             <div class="actions">
-                                <button type="button" data-action="preview" data-url="${image.url}">查看</button>
                                 <button type="button" class="${downloaded ? "success" : ""}" data-action="download-image" data-url="${image.url}" data-index="${index}">
                                     ${downloaded ? "已下载" : "下载"}
                                 </button>
@@ -521,7 +525,6 @@
                 <section class="video-box">
                     <video src="${state.video.url}" poster="${state.video.poster_url}" controls></video>
                     <div class="video-actions">
-                        <button type="button" data-action="preview" data-url="${state.video.url}">查看</button>
                         <button type="button" class="${downloaded ? "success" : ""}" data-action="download-video" data-url="${state.video.url}">
                             ${downloaded ? "已下载" : "下载"}
                         </button>
@@ -590,11 +593,6 @@
             const url = target.dataset.url;
             const index = target.dataset.index;
 
-            if (action === "preview") {
-                window.open(url, "_blank");
-                return;
-            }
-
             if (action === "copy-image") {
                 await copyText(url, `image-copy-${index}`);
                 return;
@@ -606,12 +604,12 @@
             }
 
             if (action === "download-image") {
-                await downloadUrl(url, `image-${Number(index) + 1}.jpg`, `image-download-${index}`);
+                await saveViaBackend("/download-image", url, `image-${Number(index) + 1}`, `image-download-${index}`);
                 return;
             }
 
             if (action === "download-video") {
-                await downloadUrl(url, "video.mp4", "video-download");
+                await saveViaBackend("/download-video", url, "video", "video-download");
             }
         });
 

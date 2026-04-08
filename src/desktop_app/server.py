@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
+from urllib.parse import urlparse
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -46,8 +49,66 @@ class VideoResponse(BaseModel):
     video: dict
 
 
+class DownloadRequest(BaseModel):
+    url: HttpUrl
+    filename: str | None = None
+
+
+class DownloadResponse(BaseModel):
+    success: bool
+    path: str
+    filename: str
+
+
 def _frontend_file() -> Path:
     return ui_dir() / "index.html"
+
+
+def _downloads_dir() -> Path:
+    return Path.home() / "Downloads"
+
+
+def _sanitize_filename(filename: str) -> str:
+    cleaned = re.sub(r'[\\/:*?"<>|]+', "-", filename).strip().strip(".")
+    return cleaned or "download"
+
+
+def _infer_extension(url: str, fallback: str) -> str:
+    suffix = Path(urlparse(url).path).suffix.lower()
+    if suffix and len(suffix) <= 5:
+        return suffix
+    return fallback
+
+
+def _build_download_path(filename: str, extension: str) -> Path:
+    downloads_dir = _downloads_dir()
+    downloads_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = _sanitize_filename(filename)
+    if not safe_name.lower().endswith(extension.lower()):
+        safe_name = f"{safe_name}{extension}"
+
+    target = downloads_dir / safe_name
+    counter = 1
+    while target.exists():
+        target = downloads_dir / f"{Path(safe_name).stem}-{counter}{Path(safe_name).suffix}"
+        counter += 1
+    return target
+
+
+async def _save_remote_file(url: str, filename: str, fallback_extension: str) -> Path:
+    target = _build_download_path(filename, _infer_extension(url, fallback_extension))
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=60) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            target.write_bytes(response.content)
+            return target
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=400, detail=f"Download request failed: {exc}") from exc
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=400, detail=f"Download failed with status {exc.response.status_code}") from exc
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail=f"Unable to save file: {exc}") from exc
 
 
 def create_app() -> FastAPI:
@@ -91,6 +152,16 @@ def create_app() -> FastAPI:
     @app.get("/parse-video", summary="Parse video share links (GET)")
     async def parse_video_get(url: str, return_raw: bool = False):
         return await _parse_video(url, return_raw)
+
+    @app.post("/download-image", response_model=DownloadResponse, summary="Save image to Downloads")
+    async def download_image(request: DownloadRequest):
+        target = await _save_remote_file(str(request.url), request.filename or "image", ".jpg")
+        return DownloadResponse(success=True, path=str(target), filename=target.name)
+
+    @app.post("/download-video", response_model=DownloadResponse, summary="Save video to Downloads")
+    async def download_video(request: DownloadRequest):
+        target = await _save_remote_file(str(request.url), request.filename or "video", ".mp4")
+        return DownloadResponse(success=True, path=str(target), filename=target.name)
 
     return app
 
