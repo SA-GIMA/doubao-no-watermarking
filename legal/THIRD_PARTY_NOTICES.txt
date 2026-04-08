@@ -1,0 +1,17 @@
+Third-Party Notices
+===================
+
+This distribution contains software derived from the open source project
+"doubao-nomark" and continues to include its MIT license in LICENSE.
+
+Current desktop packaging and repository maintenance:
+- Maintainer: sagima
+
+Primary upstream source:
+- doubao-nomark
+- Copyright (c) 2025 ihmily
+- License: MIT
+
+Runtime dependencies used by this distribution may carry their own licenses,
+including but not limited to FastAPI, Uvicorn, HTTPX, Pydantic, and pywebview.
+Please review their published license texts before redistribution.

@@ -1,187 +1,169 @@
-<div align="center">
-  <img src="icons/logo.svg" alt="无印豆包 Logo" width="120"/>
-  <h1>无印豆包</h1>
-</div>
-<p align="center">
-  <a href="https://github.com/ihmily/doubao-nomark/stargazers"><img src="https://img.shields.io/github/stars/ihmily/doubao-nomark" alt="GitHub stars"/></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python"/></a>
-  <a href="https://hub.docker.com/r/ihmily/doubao-nomark/tags"><img src="https://img.shields.io/docker/pulls/ihmily/doubao-nomark" alt="Docker Pulls"/></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/></a>
-</p>
+# doubao-no-watermarking
 
-<p align="center">从豆包对话链接中提取无水印图片和视频资源的 API 服务/浏览器插件</p>
+维护者：`sagima`
 
+`doubao-no-watermarking` 是一个面向本地使用场景的桌面封装项目，用于从豆包分享链接中提取图片和视频资源。当前仓库以 `sagima` 的二次整理、桌面化封装、GitHub 维护和后续发布为目标，适合继续作为公开仓库或私有仓库长期维护。
 
+除 [LICENSE](/Users/sagima/Downloads/Demo/doubao-no-watermarking/LICENSE) 与 [legal/THIRD_PARTY_NOTICES.txt](/Users/sagima/Downloads/Demo/doubao-no-watermarking/legal/THIRD_PARTY_NOTICES.txt) 中依法必须保留的上游版权与许可说明外，当前仓库中的维护者与开发者展示信息已经统一整理为 `sagima`。
 
-## 快速开始
+## 项目特点
 
-### 方式一：本地运行（推荐使用 uv）
+- 支持图片分享链接解析，返回图片地址、宽度、高度等信息。
+- 支持视频分享链接解析，返回视频播放地址、分辨率、封面地址等信息。
+- 提供本地桌面启动器，适合封装为 macOS `.app` 或 Windows `.exe`。
+- 提供浅蓝色桌面界面，支持查看、复制和下载解析结果。
+- 保留原始解析核心逻辑，降低后续维护和问题定位成本。
+- 目录已清理为适合上传 GitHub 的状态，不包含打包缓存和本地产物。
+
+## 适用场景
+
+- 本地自用提取工具
+- 私有化内部工具
+- 二次封装为桌面应用
+- 作为 API 服务接入你自己的前端或工具链
+
+## 当前仓库结构
+
+```text
+doubao-no-watermarking/
+  app.py
+  doubao_parser/
+  src/
+    desktop_app/
+      launcher.py
+      runtime.py
+      server.py
+      ui/
+        index.html
+  scripts/
+    build_macos.sh
+    build_windows.ps1
+  legal/
+    THIRD_PARTY_NOTICES.txt
+  README.md
+  LICENSE
+  requirements.txt
+  pyproject.toml
+  uv.lock
+```
+
+各目录用途如下：
+
+- `doubao_parser/`
+  放原始解析核心逻辑，分别处理图片和视频提取。
+
+- `src/desktop_app/server.py`
+  提供 FastAPI 服务入口，对外暴露 `/parse`、`/parse-video`、`/health` 等接口。
+
+- `src/desktop_app/launcher.py`
+  桌面启动器。启动本地服务后，拉起桌面窗口或浏览器页面。
+
+- `src/desktop_app/ui/index.html`
+  当前桌面界面，已调整为浅蓝色风格，并显示“开发者：sagima”。
+
+- `scripts/`
+  双平台打包脚本。
+
+- `legal/`
+  放保留的法律文件和第三方声明。
+
+## 功能说明
+
+### 图片解析
+
+输入包含 `/thread/` 的豆包对话分享链接，系统会解析出图片资源列表。
+
+返回字段通常包括：
+
+- `url`
+- `width`
+- `height`
+
+### 视频解析
+
+输入包含 `share_id` 与 `video_id` 的豆包视频分享链接，系统会解析出视频播放信息。
+
+返回字段通常包括：
+
+- `url`
+- `width`
+- `height`
+- `definition`
+- `poster_url`
+
+## 运行环境
+
+- Python `3.10+`
+- 推荐本地网络可正常访问豆包分享页面
+- macOS 或 Windows
+
+## 安装依赖
 
 ```bash
-# 1. 克隆项目
-git clone https://github.com/ihmily/doubao-nomark.git
-cd doubao-nomark
-
-# 2.使用 uv 创建虚拟环境并安装依赖
-uv sync
-
-# 3. 激活虚拟环境
-source .venv/bin/activate  # Linux/Mac
-# 或 
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.venv\Scripts\Activate.ps1  # Windows PowerShel
-
-# 4. 运行服务
-uvicorn app:app --host 0.0.0.0 --port 8000
+python -m pip install -r requirements.txt
 ```
 
-### 方式二：使用 pip
+## 本地开发运行
+
+### 方式一：启动 API 服务
 
 ```bash
-# 1. 安装依赖
-pip install -r requirements.txt
-
-# 2. 运行服务
-uvicorn app:app --host 0.0.0.0 --port 8000
+python -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-### 方式三：Docker 部署
+启动后可访问：
 
-**方式 A：使用远程镜像**
+- 首页：`http://127.0.0.1:8000/`
+- 文档：`http://127.0.0.1:8000/docs`
+- 健康检查：`http://127.0.0.1:8000/health`
+
+### 方式二：启动桌面版
 
 ```bash
-# 拉取镜像
-docker pull ihmily/doubao-nomark
-
-# 运行容器
-docker run -d -p 8000:8000 --name doubao-app ihmily/doubao-nomark
-
-# 查看日志
-docker logs -f doubao-app
-
-# 停止容器
-docker stop doubao-app
-
-# 删除容器
-docker rm doubao-app
+python src/desktop_app/launcher.py
 ```
 
-**方式 B：本地构建镜像**
+如果你更喜欢模块方式，也可以使用：
 
 ```bash
-# 构建镜像
-docker build -t doubao-nomark .
-
-# 运行容器
-docker run -d -p 8000:8000 --name doubao-app doubao-nomark
+python -m src.desktop_app.launcher
 ```
 
-### 方式四：作为 Python 库使用
+## API 教程
 
-如果你需要在自己的 Python 项目中集成调用，可以将本项目作为库安装：
+### 解析图片
 
-#### 安装
+请求示例：
 
 ```bash
-# 克隆项目
-git clone https://github.com/ihmily/doubao-nomark.git
-cd doubao-nomark
-
-# 以可编辑模式安装
-pip install -e .
+curl "http://127.0.0.1:8000/parse?url=https://www.doubao.com/thread/xxxxx"
 ```
 
-#### 调用示例
-
-**解析图片：**
-
-```python
-from doubao_parser.image import doubao_image_parse
-
-# 异步调用
-result = await doubao_image_parse(
-    url="https://www.doubao.com/thread/xxxxxx",
-    return_raw=False  # False: 返回简化格式, True: 返回原始数据
-)
-```
-
-**解析视频：**
-
-```python
-from doubao_parser.video import doubao_video_parse
-
-# 异步调用
-video_data = await doubao_video_parse(
-    url="https://www.doubao.com/video-sharing?share_id=xxx&video_id=xxx",
-    return_raw=False
-)
-```
-
-具体代码参考doubao_parser目录下代码。
-
-## 界面演示
-
-![图片解析示例](docs/images/image-parse-flow.jpg)
-
-![视频解析示例](docs/images/video-parse-flow.jpg)
-
-## 使用说明
-
-### 获取分享链接方法
-
-| ![copy-image-link.jpg](docs/images/copy-image-link.jpg) | ![copy-video-link.jpg](docs/images/copy-video-link.jpg) |
-| :-----------------------------------------------------: | :-----------------------------------------------------: |
-|                    获取图片分享链接                     |                    获取视频分享链接                     |
-
-**注意，获取视频分享链接的方式跟图片的相比略有不同。** 获取视频分享地址需要直接长按在视频上，然后点击分享，如果是iphone手机可以直接点击拷贝，即可成功复制到地址。安卓手机可以通过选择在浏览器打开或者分享到微信打开，然后再复制其地址。
-
-### 访问 API 文档
-
-访问 `http://localhost:8000/docs` 查看交互式 API 文档
-
-### 提取图片
-
-**POST** `/parse`
-
-```json
-{
-  "url": "https://www.doubao.com/thread/xxxxxx",
-  "return_raw": false
-}
-```
-
-**GET** `/parse?url=https://www.doubao.com/thread/xxxxxx`
-
-**响应示例：**
+返回示例：
 
 ```json
 {
   "success": true,
-  "image_count": 3,
+  "image_count": 2,
   "images": [
     {
       "url": "https://...",
       "width": 1024,
-      "height": 768
+      "height": 1024
     }
   ]
 }
 ```
 
-### 提取视频
+### 解析视频
 
-**POST** `/parse-video`
+请求示例：
 
-```json
-{
-  "url": "https://www.doubao.com/video-sharing?share_id=xxx&video_id=xxx",
-  "return_raw": false
-}
+```bash
+curl "http://127.0.0.1:8000/parse-video?url=https://www.doubao.com/video-sharing?share_id=xxx&video_id=xxx"
 ```
 
-**GET** `/parse-video?url=https://www.doubao.com/video-sharing?share_id=xxx&video_id=xxx`
-
-**响应示例：**
+返回示例：
 
 ```json
 {
@@ -196,42 +178,129 @@ video_data = await doubao_video_parse(
 }
 ```
 
-## 浏览器扩展
+## 桌面界面使用教程
 
-为了更方便地使用（无需服务端），本项目提供了多种浏览器扩展方案：
+### 图片流程
 
-### 油猴脚本
+1. 打开桌面程序。
+2. 切换到“图片解析”。
+3. 粘贴豆包图片分享链接。
+4. 点击“开始解析”。
+5. 在结果区中查看图片。
+6. 使用“查看”“下载”“复制地址”按钮处理结果。
 
-**快速安装：** 直接访问 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/561907-%E6%97%A0%E5%8D%B0%E8%B1%86%E5%8C%85-%E5%9B%BE%E7%89%87%E6%8F%90%E5%8F%96) 安装
+### 视频流程
 
-**使用步骤：**
-1. 确保已安装 [Tampermonkey](https://www.tampermonkey.net/) 或其他油猴脚本管理器
-2. 点击上方链接一键安装脚本
+1. 打开桌面程序。
+2. 切换到“视频解析”。
+3. 粘贴豆包视频分享链接。
+4. 点击“开始解析”。
+5. 预览视频结果。
+6. 使用“查看”“下载”“复制地址”按钮处理结果。
 
-### Edge 扩展
+## 打包说明
 
-**在线安装：**
+### macOS
 
-1. 访问Edge扩展安装页面：[无印豆包 - 图片提取](https://microsoftedge.microsoft.com/addons/detail/%E6%97%A0%E5%8D%B0%E8%B1%86%E5%8C%85-%E5%9B%BE%E7%89%87%E6%8F%90%E5%8F%96/hjlplfcnpgglfdjafekcgahffdengaij)
-2. 点击「获取」按钮即可完成安装
+执行：
 
-**使用说明：**
+```bash
+bash scripts/build_macos.sh
+```
 
-- 在豆包聊天界面会在页面右下角显示📷按钮，点击按钮可以打开图片下载面板
-- 在豆包对话页面会自动识别并提取无水印的图片资源 **（插件不支持视频）**
+说明：
 
-### 插件演示
+- 该脚本会安装 `PyInstaller` 和 `pywebview`
+- 生成的应用名会使用当前包名
+- 打包产物默认输出到 `dist/`
 
-![script-example](docs/images/script-example.jpg)
+### Windows
 
-## Star History
+执行：
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ihmily/doubao-nomark&type=date&legend=top-left)](https://www.star-history.com/#ihmily/doubao-nomark&type=date&legend=top-left)
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows.ps1
+```
 
-## 许可证
+说明：
 
-本项目仅供学习交流使用
+- 需要在 Windows 环境中执行
+- 不能在当前 macOS 上直接稳定产出原生 `.exe`
+- 建议在目标 Windows 机器上本地打包
 
----
+## 适合上传 GitHub 的原因
 
-**注意**：使用本服务时请遵守豆包平台的使用条款和相关法律法规
+当前目录已经整理为适合仓库托管的状态，重点包括：
+
+- 已移除本地产物目录，如 `dist/` 和 `build/`
+- 已移除缓存目录，如 `__pycache__/`
+- 已移除系统垃圾文件，如 `.DS_Store`
+- 已移除旧的打包规格文件
+- 已统一维护者与开发者展示信息
+- 已保留必要的开源许可证和第三方声明
+
+## 建议的 GitHub 仓库信息
+
+### 仓库标题
+
+`doubao-no-watermarking`
+
+### 仓库描述
+
+`Desktop packaging and local delivery for Doubao media extraction, maintained by sagima.`
+
+### 建议标签
+
+- `python`
+- `fastapi`
+- `desktop-app`
+- `pyinstaller`
+- `doubao`
+- `media-tools`
+
+## 常见问题
+
+### 1. 为什么 `python src/desktop_app/launcher.py` 之前报 `No module named 'src'`？
+
+这是脚本路径启动时的导入路径问题，当前版本已经兼容：
+
+- `python src/desktop_app/launcher.py`
+- `python -m src.desktop_app.launcher`
+
+### 2. 为什么解析失败？
+
+常见原因有：
+
+- 分享链接格式不正确
+- 图片链接不是 `/thread/` 类型
+- 视频链接缺少 `share_id` 或 `video_id`
+- 目标页面结构发生变化
+- 本地网络无法正常访问目标资源
+
+### 3. 为什么 Windows 包没有在这个仓库里直接提供？
+
+因为原生 Windows `exe` 更稳妥的方式是在 Windows 环境本地打包。当前仓库已经包含完整打包脚本，迁移到 Windows 后可直接执行。
+
+### 4. 这个仓库是否已经适合直接上传？
+
+从目录整洁度、维护信息、README 完整度和保留法律文件这几个角度看，当前已经具备上传条件。
+
+## 后续可继续优化的方向
+
+- 补充应用图标并统一品牌资源
+- 增加 GitHub Actions 自动构建流程
+- 增加启动失败时的图形化提示
+- 优化打包体积
+- 增加英文 README
+
+## 合规说明
+
+当前版本的品牌、桌面封装和维护者信息已整理为 `sagima`，同时保留了上游项目所要求的许可证与第三方声明文件：
+
+- [LICENSE](/Users/sagima/Downloads/Demo/doubao-no-watermarking/LICENSE)
+- [legal/THIRD_PARTY_NOTICES.txt](/Users/sagima/Downloads/Demo/doubao-no-watermarking/legal/THIRD_PARTY_NOTICES.txt)
+
+如果你准备上传到 GitHub，可以直接使用当前仓库内容继续维护。  
+推荐对外说明为：
+
+`doubao-no-watermarking maintained by sagima. Desktop packaging and local delivery for Doubao media extraction.`

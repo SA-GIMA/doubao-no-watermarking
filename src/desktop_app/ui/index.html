@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>doubao-no-watermarking</title>
+    <style>
+        :root {
+            --bg: #eaf6ff;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-strong: #fdfefe;
+            --line: rgba(62, 118, 167, 0.16);
+            --text: #13324d;
+            --muted: #5c7f9f;
+            --accent: #4a94cf;
+            --accent-soft: #d9eefc;
+            --success: #207a6e;
+            --error-bg: #eef7ff;
+            --error-text: #2d5f8e;
+            --shadow: 0 28px 80px rgba(81, 145, 201, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(147, 205, 255, 0.5), transparent 28%),
+                radial-gradient(circle at right 20%, rgba(188, 228, 255, 0.55), transparent 24%),
+                linear-gradient(180deg, #f6fbff 0%, #e6f3ff 100%);
+        }
+
+        .shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 32px auto;
+            padding: 28px;
+            border-radius: 28px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .hero-copy {
+            padding: 10px 6px 10px 0;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 18px 0 12px;
+            font-size: clamp(32px, 5vw, 56px);
+            line-height: 1.02;
+            letter-spacing: -0.04em;
+        }
+
+        .subtitle {
+            max-width: 640px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .hero-note {
+            display: grid;
+            gap: 14px;
+            align-content: start;
+            padding: 22px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.58));
+            border: 1px solid var(--line);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .hero-note strong {
+            font-size: 14px;
+        }
+
+        .hero-note p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .panel {
+            padding: 24px;
+            border-radius: 24px;
+            background: var(--surface-strong);
+            border: 1px solid var(--line);
+        }
+
+        .tabs {
+            display: inline-flex;
+            gap: 10px;
+            padding: 6px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            border: 0;
+            border-radius: 999px;
+            padding: 12px 18px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px 18px;
+            font-size: 15px;
+            background: #f8fcff;
+            color: var(--text);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: rgba(74, 148, 207, 0.45);
+            box-shadow: 0 0 0 4px rgba(74, 148, 207, 0.12);
+        }
+
+        button.primary {
+            border: 0;
+            border-radius: 16px;
+            padding: 16px 22px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button.primary:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            min-height: 32px;
+            margin: 18px 0 6px;
+        }
+
+        .status {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .error {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border: 1px solid rgba(157, 47, 40, 0.16);
+            border-radius: 16px;
+            background: var(--error-bg);
+            color: var(--error-text);
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .card {
+            overflow: hidden;
+            border-radius: 20px;
+            background: #fafdff;
+            border: 1px solid var(--line);
+            box-shadow: 0 14px 34px rgba(108, 169, 220, 0.09);
+        }
+
+        .preview {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block;
+            background: #d8eefc;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 12px 14px 14px;
+        }
+
+        .actions button,
+        .video-actions button {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 11px 10px;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .actions button:hover,
+        .video-actions button:hover,
+        button.primary:hover:not(:disabled),
+        .tab:hover {
+            transform: translateY(-1px);
+        }
+
+        .actions button.success,
+        .video-actions button.success {
+            color: var(--success);
+            border-color: rgba(32, 122, 110, 0.26);
+            background: rgba(32, 122, 110, 0.08);
+        }
+
+        .video-box {
+            margin-top: 20px;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, #7eb6df 0%, #5c93c2 100%);
+        }
+
+        .video-box video {
+            width: 100%;
+            display: block;
+        }
+
+        .video-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 14px;
+            background: #fafdff;
+        }
+
+        .empty {
+            display: grid;
+            place-items: center;
+            min-height: 240px;
+            margin-top: 18px;
+            border: 1px dashed rgba(74, 148, 207, 0.28);
+            border-radius: 20px;
+            color: var(--muted);
+            text-align: center;
+            padding: 28px;
+            background: rgba(245, 251, 255, 0.9);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .shell {
+                width: min(100% - 20px, 1120px);
+                margin: 10px auto;
+                padding: 16px;
+                border-radius: 22px;
+            }
+
+            .panel,
+            .hero-note {
+                padding: 18px;
+            }
+
+            .actions,
+            .video-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="hero">
+            <div class="hero-copy">
+                <div class="eyebrow">Desktop Edition</div>
+                <h1>doubao-no-watermarking</h1>
+                <p class="subtitle">浅蓝色桌面版界面，专注于快速提取豆包分享链接中的图片和视频，适合本地自用与桌面封装交付。</p>
+            </div>
+            <aside class="hero-note">
+                <strong>使用提示</strong>
+                <p>图片请使用包含 <code>/thread/</code> 的分享链接，视频请使用带 <code>share_id</code> 和 <code>video_id</code> 的分享地址。</p>
+                <p>程序仅在本机启动本地服务，不会把提取结果存到远端。</p>
+            </aside>
+        </section>
+
+        <section class="panel">
+            <div class="tabs">
+                <button id="imageTab" class="tab active" type="button">图片解析</button>
+                <button id="videoTab" class="tab" type="button">视频解析</button>
+            </div>
+
+            <div class="input-row">
+                <input id="urlInput" type="text" placeholder="输入豆包分享链接">
+                <button id="parseButton" class="primary" type="button">开始解析</button>
+            </div>
+
+            <div class="status-row">
+                <div id="status" class="status">等待输入链接</div>
+                <div id="summary" class="status"></div>
+            </div>
+
+            <div id="error" class="error" hidden></div>
+            <div id="result"></div>
+        </section>
+
+        <footer class="footer">
+            <span>当前桌面封装版本由 <strong>sagima</strong> 维护。</span>
+            <span>开发者：<strong>sagima</strong></span>
+            <span>法律文件请查看程序目录中的 <code>legal/</code>。</span>
+        </footer>
+    </main>
+
+    <script>
+        const state = {
+            mode: "image",
+            images: [],
+            video: null,
+            busy: false,
+            copiedKey: "",
+            downloadedKey: "",
+        };
+
+        const imageTab = document.getElementById("imageTab");
+        const videoTab = document.getElementById("videoTab");
+        const urlInput = document.getElementById("urlInput");
+        const parseButton = document.getElementById("parseButton");
+        const statusNode = document.getElementById("status");
+        const summaryNode = document.getElementById("summary");
+        const errorNode = document.getElementById("error");
+        const resultNode = document.getElementById("result");
+
+        function setMode(mode) {
+            state.mode = mode;
+            state.images = [];
+            state.video = null;
+            state.copiedKey = "";
+            state.downloadedKey = "";
+            hideError();
+            summaryNode.textContent = "";
+            statusNode.textContent = mode === "image" ? "等待图片链接" : "等待视频链接";
+            imageTab.classList.toggle("active", mode === "image");
+            videoTab.classList.toggle("active", mode === "video");
+            urlInput.placeholder = mode === "image"
+                ? "输入豆包对话链接，例如：https://www.doubao.com/thread/xxxxx"
+                : "输入豆包视频链接，例如：https://www.doubao.com/video-sharing?share_id=xxx&video_id=xxx";
+            render();
+            localStorage.setItem("mf_mode", mode);
+        }
+
+        function setBusy(busy) {
+            state.busy = busy;
+            parseButton.disabled = busy;
+            parseButton.textContent = busy ? "解析中..." : "开始解析";
+        }
+
+        function showError(message) {
+            errorNode.hidden = false;
+            errorNode.textContent = message;
+        }
+
+        function hideError() {
+            errorNode.hidden = true;
+            errorNode.textContent = "";
+        }
+
+        async function copyText(text, key) {
+            try {
+                await navigator.clipboard.writeText(text);
+                state.copiedKey = key;
+                render();
+                window.setTimeout(() => {
+                    if (state.copiedKey === key) {
+                        state.copiedKey = "";
+                        render();
+                    }
+                }, 1800);
+            } catch (error) {
+                showError("复制失败，请手动复制。");
+            }
+        }
+
+        async function downloadUrl(url, filename, key) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = objectUrl;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(objectUrl);
+                state.downloadedKey = key;
+                render();
+                window.setTimeout(() => {
+                    if (state.downloadedKey === key) {
+                        state.downloadedKey = "";
+                        render();
+                    }
+                }, 1800);
+            } catch (error) {
+                showError("下载失败，请稍后重试。");
+            }
+        }
+
+        function render() {
+            if (state.mode === "image") {
+                if (!state.images.length) {
+                    resultNode.innerHTML = '<div class="empty">输入图片分享链接后，提取结果会显示在这里。</div>';
+                    return;
+                }
+
+                const cards = state.images.map((image, index) => {
+                    const copied = state.copiedKey === `image-copy-${index}`;
+                    const downloaded = state.downloadedKey === `image-download-${index}`;
+                    return `
+                        <article class="card">
+                            <img class="preview" src="${image.url}" alt="image-${index}">
+                            <div class="meta">
+                                <span>图片 ${index + 1}</span>
+                                <span>${image.width} × ${image.height}</span>
+                            </div>
+                            <div class="actions">
+                                <button type="button" data-action="preview" data-url="${image.url}">查看</button>
+                                <button type="button" class="${downloaded ? "success" : ""}" data-action="download-image" data-url="${image.url}" data-index="${index}">
+                                    ${downloaded ? "已下载" : "下载"}
+                                </button>
+                                <button type="button" class="${copied ? "success" : ""}" data-action="copy-image" data-url="${image.url}" data-index="${index}">
+                                    ${copied ? "已复制" : "复制地址"}
+                                </button>
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+
+                resultNode.innerHTML = `<section class="grid">${cards}</section>`;
+                return;
+            }
+
+            if (!state.video) {
+                resultNode.innerHTML = '<div class="empty">输入视频分享链接后，提取结果会显示在这里。</div>';
+                return;
+            }
+
+            const copied = state.copiedKey === "video-copy";
+            const downloaded = state.downloadedKey === "video-download";
+            resultNode.innerHTML = `
+                <section class="video-box">
+                    <video src="${state.video.url}" poster="${state.video.poster_url}" controls></video>
+                    <div class="video-actions">
+                        <button type="button" data-action="preview" data-url="${state.video.url}">查看</button>
+                        <button type="button" class="${downloaded ? "success" : ""}" data-action="download-video" data-url="${state.video.url}">
+                            ${downloaded ? "已下载" : "下载"}
+                        </button>
+                        <button type="button" class="${copied ? "success" : ""}" data-action="copy-video" data-url="${state.video.url}">
+                            ${copied ? "已复制" : "复制地址"}
+                        </button>
+                    </div>
+                </section>
+            `;
+        }
+
+        async function parseCurrentUrl() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                showError("请输入有效链接。");
+                return;
+            }
+
+            hideError();
+            setBusy(true);
+            state.images = [];
+            state.video = null;
+            state.copiedKey = "";
+            state.downloadedKey = "";
+            render();
+            statusNode.textContent = "正在解析，请稍候...";
+            summaryNode.textContent = "";
+            localStorage.setItem("mf_url", url);
+
+            try {
+                const endpoint = state.mode === "image" ? "/parse" : "/parse-video";
+                const response = await fetch(`${window.location.origin}${endpoint}?url=${encodeURIComponent(url)}`);
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.detail || "解析失败");
+                }
+
+                if (state.mode === "image") {
+                    state.images = payload.images || [];
+                    statusNode.textContent = "图片提取完成";
+                    summaryNode.textContent = `共 ${state.images.length} 张`;
+                } else {
+                    state.video = payload.video;
+                    statusNode.textContent = "视频提取完成";
+                    summaryNode.textContent = state.video
+                        ? `${state.video.width} × ${state.video.height} / ${state.video.definition}`
+                        : "";
+                }
+                render();
+            } catch (error) {
+                statusNode.textContent = "解析失败";
+                showError(error.message || "发生未知错误。");
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        resultNode.addEventListener("click", async (event) => {
+            const target = event.target.closest("button");
+            if (!target) {
+                return;
+            }
+
+            const action = target.dataset.action;
+            const url = target.dataset.url;
+            const index = target.dataset.index;
+
+            if (action === "preview") {
+                window.open(url, "_blank");
+                return;
+            }
+
+            if (action === "copy-image") {
+                await copyText(url, `image-copy-${index}`);
+                return;
+            }
+
+            if (action === "copy-video") {
+                await copyText(url, "video-copy");
+                return;
+            }
+
+            if (action === "download-image") {
+                await downloadUrl(url, `image-${Number(index) + 1}.jpg`, `image-download-${index}`);
+                return;
+            }
+
+            if (action === "download-video") {
+                await downloadUrl(url, "video.mp4", "video-download");
+            }
+        });
+
+        imageTab.addEventListener("click", () => setMode("image"));
+        videoTab.addEventListener("click", () => setMode("video"));
+        parseButton.addEventListener("click", parseCurrentUrl);
+        urlInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                parseCurrentUrl();
+            }
+        });
+
+        const savedMode = localStorage.getItem("mf_mode");
+        const savedUrl = localStorage.getItem("mf_url");
+        if (savedUrl) {
+            urlInput.value = savedUrl;
+        }
+        setMode(savedMode === "video" ? "video" : "image");
+    </script>
+</body>
+</html>
